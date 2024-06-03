@@ -32,8 +32,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 const supabase = 
-    supabaseClient.createClient('https://fuwanwzcqujazoaosirt.supabase.co', 
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1d2Fud3pjcXVqYXpvYW9zaXJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTczNzc1MzgsImV4cCI6MjAzMjk1MzUzOH0.tR82sCC2ZTDF5xB6hktV2qq6J9HywwGniwBUjwwX6so')
+    supabaseClient.createClient('https://qoxhecmwtbdcxooryxpz.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFveGhlY213dGJkY3hvb3J5eHB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU2MzQxODYsImV4cCI6MjAzMTIxMDE4Nn0.mIKswtVeANuySJnzUcrtR6cYpVyN2ApLxKwvL4b_QxQ'
+    )
 
 
 app.get('/products', async (req, res) => {
@@ -74,18 +75,35 @@ app.post('/products', async (req, res) => {
 });
 
 app.put('/products/:id', async (req, res) => {
-    const {error} = await supabase
+    const { id } = req.params;
+    const { name, description, price } = req.body;
+
+    if (!name || !description || !price) {
+        return res.status(400).send('Nome, descrição e preço são campos obrigatórios');
+    }
+
+    const { data, error } = await supabase
         .from('products')
         .update({
-            name: req.body.name,
-            description: req.body.description,
-            price: req.body.price
+            name: name,
+            description: description,
+            price: price
         })
-        .eq('id', req.params.id)
+        .eq('id', id);
+
     if (error) {
-        res.send(error);
+        return res.status(500).send(error.message);
     }
+
+    if (data.length === 0) {
+        return res.status(404).send('Product nâo encontrado');
+    }
+
     res.send("updated!!");
+    console.log("updated product id: " + id);
+    console.log("updated name: " + name);
+    console.log("updated description: " + description);
+    console.log("updated price: " + price);
 });
 
 app.delete('/products/:id', async (req, res) => {
